@@ -95,7 +95,6 @@ export class OtpService {
   }
 
   async validateResetPassword(token: string) {
-    console.warn(token,'token')
     try {
       const decoded = await this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET_RESET,
@@ -103,14 +102,16 @@ export class OtpService {
 
       return decoded.id;
     } catch (error) {
-
       if (error?.name === 'TokenExpiredError') {
         throw new BadRequestException(
           'The reset token is expired. Please request a new one!',
         );
       }
 
-      throw new BadRequestException('Invalid or Malformed request token!',error);
+      throw new BadRequestException(
+        'Invalid or Malformed request token!',
+        error,
+      );
     }
   }
 }
