@@ -1,0 +1,23 @@
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo-nest-auth
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=YOUR_MONGO_USERNAME_HERE
+      - MONGO_INITDB_ROOT_PASSWORD=YOUR_MONGO_PASSWORD_HERE
+
+  valkey:
+    image: valkey/valkey
+    container_name: valkey-nest-auth
+    ports:
+      - '6379:6379'
+    environment:
+      - VALKEY_PASSWORD=YOUR_VALKEY_PASSWORD_HERE
+    
+
+volumes:
+  mongo-data:
