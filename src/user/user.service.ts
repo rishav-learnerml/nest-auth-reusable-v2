@@ -143,6 +143,12 @@ export class UserService {
     otpType: OTPType = OTPType.OTP,
   ): Promise<void> {
     if (!user) throw new UnauthorizedException('Invalid request.');
+
+    if (otpType === OTPType.RESET_LINK) {
+      await this.otpEmailService.generateAndSendOtp(user, otpType);
+      return;
+    }
+
     if (user.accountStatus === 'verified') return;
 
     const existing = await this.otpService.getOtpByUserIdAndType(

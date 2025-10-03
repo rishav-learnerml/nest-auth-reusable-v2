@@ -20,14 +20,32 @@ export class OtpEmailService {
   async generateAndSendOtp(user: User, otpType: OTPType): Promise<string> {
     const otp = await this.otpService.generateOtp(user, otpType);
 
-    const sendEmailDto: SendEmailDto = {
-      recepients: [user.email],
-      subject: OTP_TEMPLATE.verify_email.subject,
-      html: OTP_TEMPLATE.verify_email.getHtml(user.firstname, otp),
-    };
+    if (otpType === OTPType.OTP) {
+      const sendEmailDto: SendEmailDto = {
+        recepients: [user.email],
+        subject: OTP_TEMPLATE.verify_email.subject,
 
-    await this.emailService.sendEmail(sendEmailDto);
+        html: OTP_TEMPLATE.verify_email.getHtml(user.firstname, otp),
+      };
 
-    return otp;
+      await this.emailService.sendEmail(sendEmailDto);
+
+      return otp;
+    } else if (otpType === OTPType.RESET_LINK) {
+      const reset_link = `${process.env.RESET_PASSWORD_URL}?token=${otp}`;
+
+      const sendEmailDto: SendEmailDto = {
+        recepients: [user.email],
+        subject: OTP_TEMPLATE.reset_password.subject,
+
+        html: OTP_TEMPLATE.reset_password.getHtml(user.firstname, reset_link),
+      };
+
+      await this.emailService.sendEmail(sendEmailDto);
+
+      return reset_link;
+    } else {
+      return 'invalid_otp_type';
+    }
   }
 }

@@ -14,7 +14,7 @@ import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { OTPType } from 'src/otp/types/otp.type';
-import { get } from 'http';
+import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 
 @Controller('user')
 export class UserController {
@@ -91,6 +91,21 @@ export class UserController {
 
     return {
       message: 'A new OTP has been sent to your email.',
+    };
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: ForgotPasswordDto) {
+    const user = await this.userService.findUserByEmail(body.email);
+
+    if (!user) {
+      throw new NotFoundException('User with this email does not exist.');
+    }
+    
+    await this.userService.verifyUserEmail(user, OTPType.RESET_LINK);
+
+    return {
+      message: 'A reset password link has been sent to your email!',
     };
   }
 }

@@ -6,26 +6,41 @@ import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { OTPType } from './types/otp.type';
 import { User } from 'src/user/schemas/user.schema';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class OtpService {
-  constructor(@InjectModel(OTP.name) private otpModel: Model<OTP>) {}
+  constructor(
+    @InjectModel(OTP.name) private otpModel: Model<OTP>,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async generateOtp(user: User, type: OTPType): Promise<string> {
-    const otp = crypto.randomInt(100000, 999999).toString();
-    const hashedOtp = await bcrypt.hash(otp, 10);
+    if (type === OTPType.OTP) {
+      const otp = crypto.randomInt(100000, 999999).toString();
+      const hashedOtp = await bcrypt.hash(otp, 10);
 
-    const otpDocument = new this.otpModel({
-      userId: user._id,
-      code: hashedOtp,
-      type,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // OTP valid for 5 minutes
-      used: false,
-    });
+      const otpDocument = new this.otpModel({
+        userId: user._id,
+        code: hashedOtp,
+        type,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000), // OTP valid for 5 minutes
+        used: false,
+      });
 
-    await otpDocument.save();
+      await otpDocument.save();
 
-    return otp;
+      return otp;
+    } else if (type === OTPType.RESET_LINK) {
+      const resetToken = this.jwtService.sign(
+        { id: user._id, email: user.email },
+        { secret: process.env.JWT_SECRET_RESET as string, expiresIn: '15m' },
+      );
+
+      return resetToken;
+    } else {
+      return 'invalid_otp_type';
+    }
   }
 
   async getOtpByUserIdAndType(

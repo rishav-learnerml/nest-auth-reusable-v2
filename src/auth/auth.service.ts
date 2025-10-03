@@ -7,9 +7,7 @@ import { LoginUserDto } from 'src/user/dto/loginUser.dto';
 import { createClient, RedisClientType } from 'redis';
 import { Response, Request } from 'express';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { OtpService } from 'src/otp/otp.service';
 import { OtpEmailService } from 'src/otp/otp-email.service';
-import { EmailService } from 'src/email/email.service';
 import { OTPType } from 'src/otp/types/otp.type';
 
 @Injectable()
@@ -36,10 +34,12 @@ export class AuthService {
     id: string;
   }): Promise<{ access_token: string; refresh_token: string }> {
     const access_token = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_SECRET,
       expiresIn: this.accessTokenExpiry,
     });
 
     const refresh_token = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_SECRET_REFRESH,
       expiresIn: this.refreshTokenExpiry,
     });
 
