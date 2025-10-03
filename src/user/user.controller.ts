@@ -15,6 +15,7 @@ import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { OTPType } from 'src/otp/types/otp.type';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
+import { LoginUserDto } from './dto/loginUser.dto';
 
 @Controller('user')
 export class UserController {
@@ -101,11 +102,20 @@ export class UserController {
     if (!user) {
       throw new NotFoundException('User with this email does not exist.');
     }
-    
+
     await this.userService.verifyUserEmail(user, OTPType.RESET_LINK);
 
     return {
       message: 'A reset password link has been sent to your email!',
+    };
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() password: string, @Param() token: string) {
+    await this.userService.resetPassword(token, password);
+
+    return {
+      message: 'Password Reset was successful!',
     };
   }
 }

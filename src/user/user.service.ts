@@ -13,6 +13,7 @@ import { Model } from 'mongoose';
 import { OtpService } from 'src/otp/otp.service';
 import { OtpEmailService } from 'src/otp/otp-email.service';
 import { OTPType } from 'src/otp/types/otp.type';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -186,5 +187,19 @@ export class UserService {
 
     // Generate and send a fresh OTP
     await this.otpEmailService.generateAndSendOtp(user, otpType);
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const userId = await this.otpService.validateResetPassword(token);
+
+    const user = await this.userModel.findById(userId).exec();
+
+    if (!user) {
+      throw new NotFoundException('User Does not Exists!');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+
+    await user.save();
   }
 }

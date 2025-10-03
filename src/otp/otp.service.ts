@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { OTP } from './schemas/otp.schema';
 import { Model } from 'mongoose';
@@ -92,5 +92,23 @@ export class OtpService {
       status: true,
       message: 'OTP verified successfully',
     }; // OTP is valid
+  }
+
+  async validateResetPassword(token: string) {
+    try {
+      const decoded = await this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET_RESET,
+      });
+
+      return decoded.id;
+    } catch (error) {
+      if (error?.name === 'TokenExpiredError') {
+        throw new BadRequestException(
+          'The reset token is expired. Please request a new one!',
+        );
+      }
+
+      throw new BadRequestException('Invalid or Malformed request token!');
+    }
   }
 }
