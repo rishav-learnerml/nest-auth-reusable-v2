@@ -15,7 +15,6 @@ import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { OTPType } from 'src/otp/types/otp.type';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
-import { LoginUserDto } from './dto/loginUser.dto';
 
 @Controller('user')
 export class UserController {
@@ -111,7 +110,8 @@ export class UserController {
   }
 
   @Post('reset-password')
-  async resetPassword(@Body() password: string, @Param() token: string) {
+  async resetPassword(@Body() body: { password: string; token: string }) {
+    const { token, password } = body;
     await this.userService.resetPassword(token, password);
 
     return {
